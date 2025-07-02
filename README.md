@@ -30,8 +30,8 @@ A stunning dual-menu system featuring a 3D spherical social media carousel and a
 <!-- Simply open menu.html in a modern web browser -->
 ```
 <p align="center">
-    <img src="https://github.com/leonelpedroza/3D_menu_system/screenshot1.png">
-    <img src="https://github.com/leonelpedroza/3D_menu_system/screenshot2.png">
+    <img src="screenshot1.png">
+    <img src="screenshot2.png">
 </p>
 
 
