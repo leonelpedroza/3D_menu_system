@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Spherical Social Media Carousel & Cube Menu</title>
+    
+    <!-- 
+    ====================================
+    3D Interactive Menu System
+    ====================================
+    This project features two interactive 3D menu systems:
+    1. A spherical social media carousel with 11 platform links
+    2. A rotating cube menu with 6 customizable faces
+    
+    Author: [Your Name]
+    License: MIT
+    Version: 1.0.0
+    ====================================
+    -->
+    
+    <style>
+        /* ===== Global Styles ===== */
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Main container for both menu systems */
+        .main-container {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+        }
+
+        /* ===== Spherical Carousel Styles ===== */
+        
+        /* Container for the sphere carousel */
+        .carousel-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 55px; /* Space for tooltips */
+        }
+
+        /* Central trigger button that activates the sphere */
+        .sphere-trigger {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        .sphere-trigger:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Wrapper for the 3D sphere */
+        .sphere-wrapper {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .sphere-wrapper.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* The 3D sphere container */
+        .sphere {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: none; /* Smooth transforms handled by JS */
+        }
+
+        /* Individual social media icon styles */
+        .social-icon {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            background: #ffffff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            filter: grayscale(100%); /* Grayscale by default */
+            /* Center positioning */
+            left: 50%;
+            top: 50%;
+            margin-left: -20px;
+            margin-top: -20px;
+            transform-style: preserve-3d;
+        }
+
+        /* Tooltip for social media names */
+        .social-icon::after {
+            content: attr(data-name);
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Show tooltip on hover */
+        .social-icon:hover::after {
+            opacity: 1;
+        }
+
+        /* Icon hover effects */
+        .social-icon:hover {
+            filter: grayscale(0%); /* Full color on hover */
+            transform: scale(1.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .social-icon svg {
+            width: 24px;
+            height: 24px;
+            transition: all 0.3s ease;
+        }
+
+        /* Social Media Brand Colors - Applied on Hover */
+        .linkedin:hover { background: #0077b5; }
+        .github:hover { background: #333333; }
+        .discord:hover { background: #5865F2; }
+        .facebook:hover { background: #1877f2; }
+        .twitter:hover { background: #1da1f2; }
+        .instagram:hover { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
+        .youtube:hover { background: #ff0000; }
+        .tiktok:hover { background: #666666; }
+        .pinterest:hover { background: #bd081c; }
+        .quora:hover { background: #a82400; }
+        .reddit:hover { background: #ff4500; }
+
+        /* Make icons white on colored backgrounds */
+        .social-icon:hover svg {
+            filter: brightness(10);
+        }
+        
+        /* Special case for YouTube - white icon on red background */
+        .youtube:hover svg {
+            filter: brightness(10) invert(1);
+        }
+
+        /* Hide sphere trigger when sphere is active */
+        .sphere-wrapper.active ~ .sphere-trigger {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* ===== Cube Menu Styles ===== */
+        
+        /* Container for the cube with perspective */
+        .cube-container {
+            width: 100px;
+            height: 100px;
+            perspective: 600px;
+            cursor: pointer;
+        }
+
+        /* The 3D cube element */
+        .cube {
+            width: 30px;
+            height: 30px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: width 0.3s ease, height 0.3s ease;
+            margin: auto;
+            animation: rotateCube 10s infinite linear; /* Auto-rotation */
+        }
+
+        /* Expand cube on hover */
+        .cube-container:hover .cube {
+            width: 100px;
+            height: 100px;
+            animation-play-state: paused; /* Pause auto-rotation */
+        }
+
+        /* Auto-rotation keyframes */
+        @keyframes rotateCube {
+            0% { transform: rotateX(0deg) rotateY(0deg); }
+            100% { transform: rotateX(360deg) rotateY(360deg); }
+        }
+
+        /* Individual cube face styles */
+        .cube-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-color: #444; /* Fallback color */
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            opacity: 0.9;
+            transition: all 0.3s ease;
+        }
+
+        .cube-face:hover {
+            opacity: 1;
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .cube-face a {
+            display: block;
+            width: 100%;
+            height: 100%;
+            text-decoration: none;
+        }
+
+        /* Position each face of the cube - Small state */
+        .face-front {
+            transform: translateZ(15px);
+        }
+        .face-back {
+            transform: rotateY(180deg) translateZ(15px);
+        }
+        .face-right {
+            transform: rotateY(90deg) translateZ(15px);
+        }
+        .face-left {
+            transform: rotateY(-90deg) translateZ(15px);
+        }
+        .face-top {
+            transform: rotateX(90deg) translateZ(15px);
+        }
+        .face-bottom {
+            transform: rotateX(-90deg) translateZ(15px);
+        }
+
+        /* Adjust face positions when cube is expanded */
+        .cube-container:hover .face-front {
+            transform: translateZ(50px);
+        }
+        .cube-container:hover .face-back {
+            transform: rotateY(180deg) translateZ(50px);
+        }
+        .cube-container:hover .face-right {
+            transform: rotateY(90deg) translateZ(50px);
+        }
+        .cube-container:hover .face-left {
+            transform: rotateY(-90deg) translateZ(50px);
+        }
+        .cube-container:hover .face-top {
+            transform: rotateX(90deg) translateZ(50px);
+        }
+        .cube-container:hover .face-bottom {
+            transform: rotateX(-90deg) translateZ(50px);
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- ===== Spherical Social Media Carousel ===== -->
+        <div class="carousel-container" id="carouselContainer">
+            <!-- Sphere wrapper (initially hidden) -->
+            <div class="sphere-wrapper" id="sphereWrapper">
+                <div class="sphere" id="sphere">
+                    <!-- LinkedIn -->
+                    <a href="https://www.linkedin.com/" target="_blank" class="social-icon linkedin" data-name="LinkedIn">
+                        <svg viewBox="0 0 24 24" fill="#0077b5">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                        </svg>
+                    </a>
+                    
+                    <!-- GitHub -->
+                    <a href="https://github.com/" target="_blank" class="social-icon github" data-name="GitHub">
+                        <svg viewBox="0 0 24 24" fill="#333333">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                    
+                    <!-- Discord -->
+                    <a href="https://discord.com/" target="_blank" class="social-icon discord" data-name="Discord">
+                        <svg viewBox="0 0 24 24" fill="#5865F2">
+                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.865-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
+                        </svg>
+                    </a>
+                    
+                    <!-- Facebook -->
+                    <a href="https://www.facebook.com/" target="_blank" class="social-icon facebook" data-name="Facebook">
+                        <svg viewBox="0 0 24 24" fill="#1877f2">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                    </a>
+                    
+                    <!-- X/Twitter -->
+                    <a href="https://x.com/" target="_blank" class="social-icon twitter" data-name="X / Twitter">
+                        <svg viewBox="0 0 24 24" fill="#1da1f2">
+                            <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                        </svg>
+                    </a>
+                    
+                    <!-- Instagram -->
+                    <a href="https://www.instagram.com/" target="_blank" class="social-icon instagram" data-name="Instagram">
+                        <svg viewBox="0 0 24 24" fill="#e4405f">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zM5.838 12a6.162 6.162 0 1112.324 0 6.162 6.162 0 01-12.324 0zM12 16a4 4 0 110-8 4 4 0 010 8zm4.965-10.405a1.44 1.44 0 112.881.001 1.44 1.44 0 01-2.881-.001z"/>
+                        </svg>
+                    </a>
+                    
+                    <!-- YouTube -->
+                    <a href="https://www.youtube.com/" target="_blank" class="social-icon youtube" data-name="YouTube">
+                        <svg viewBox="0 0 24 24" fill="#ff0000">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                    </a>
+                    
+                    <!-- TikTok -->
+                    <a href="https://www.tiktok.com/" target="_blank" class="social-icon tiktok" data-name="TikTok">
+                        <svg viewBox="0 0 24 24" fill="#000000">
+                            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+                        </svg>
+                    </a>
+                    
+                    <!-- Pinterest -->
+                    <a href="https://www.pinterest.com/" target="_blank" class="social-icon pinterest" data-name="Pinterest">
+                        <svg viewBox="0 0 24 24" fill="#bd081c">
+                            <path d="M12 0a12 12 0 0 0-4.373 23.184c-.054-.486-.104-1.237.021-1.766.113-.474.731-3.091.731-3.091s-.186-.373-.186-.925c0-.864.502-1.512 1.126-1.512.531 0 .787.399.787.878 0 .535-.341 1.334-.516 2.075-.147.622.312 1.129.923 1.129 1.108 0 1.962-1.169 1.962-2.858 0-1.493-.071-2.693-2.172-2.693-1.758 0-2.79 1.317-2.79 2.679 0 .53.204 1.098.458 1.407.051.06.058.114.043.176-.047.195-.152.622-.173.709-.028.113-.09.137-.208.083-.772-.359-1.255-1.487-1.255-2.394 0-1.959 1.424-3.758 4.105-3.758 2.156 0 3.831 1.536 3.831 3.591 0 2.141-1.35 3.863-3.224 3.863-.63 0-1.221-.327-1.424-.713l-.387 1.477c-.14.539-.519 1.214-.772 1.627A12 12 0 1 0 12 0z"/>
+                        </svg>
+                    </a>
+                    
+                    <!-- Quora -->
+                    <a href="https://es.quora.com/" target="_blank" class="social-icon quora" data-name="Quora">
+                        <svg viewBox="0 0 24 24" fill="#a82400">
+                            <path d="M12.738 18.701c-.831-1.635-1.805-3.287-3.708-3.287-.362 0-.727.061-1.059.184l-.257-.851c.483-.332 1.331-.754 2.577-.754 2.373 0 3.674 1.431 4.734 3.377.596 1.092 1.341 2.459 2.626 2.459.421 0 .778-.151.951-.24l.181.605c-.287.154-.848.422-1.648.422-1.915 0-3.145-1.409-4.397-3.915zm1.79-14.033c-2.181 0-3.507 1.414-3.507 4.071v3.605c0 2.656 1.326 4.07 3.507 4.07 2.181 0 3.506-1.414 3.506-4.07V8.739c0-2.657-1.325-4.071-3.506-4.071zM12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm2.528 17.745c1.518 0 2.711-.821 3.006-1.591v-3.81c0-3.628-2.161-5.918-5.543-5.918S6.448 8.716 6.448 12.344v3.81c0 3.629 2.162 5.918 5.543 5.918 1.021 0 1.925-.211 2.66-.578-.362-.649-.775-1.312-1.242-1.927-.571.208-1.154.312-1.838.312-1.835 0-3.271-.85-3.271-2.638v-1.227c.694.171 1.468.262 2.291.262 3.351 0 5.965-1.371 5.965-4.861v-.003c0-.198-.013-.392-.028-.584z"/>
+                        </svg>
+                    </a>
+                    
+                    <!-- Reddit -->
+                    <a href="https://www.reddit.com/" target="_blank" class="social-icon reddit" data-name="Reddit">
+                        <svg viewBox="0 0 24 24" fill="#ff4500">
+                            <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <!-- Sphere trigger button -->
+            <div class="sphere-trigger" id="sphereTrigger"></div>
+        </div>
+
+        <!-- ===== Cube Menu ===== -->
+        <div class="cube-container" id="cubeContainer">
+            <div class="cube" id="cube">
+                <!-- Front Face -->
+                <div class="cube-face face-front" style="background-image: url('Picture/Picture1.png');">
+                    <a href="https://www.google.com/" target="_blank" title="Picture 1"></a>
+                </div>
+                <!-- Back Face -->
+                <div class="cube-face face-back" style="background-image: url('Picture/picture2.png');">
+                    <a href="https://www.yahoo.com/" target="_blank" title="Picture 2"></a>
+                </div>
+                <!-- Right Face -->
+                <div class="cube-face face-right" style="background-image: url('Picture/picture3.png');">
+                    <a href="https://www.apple.com" target="_blank" title="Picture 3"></a>
+                </div>
+                <!-- Left Face -->
+                <div class="cube-face face-left" style="background-image: url('Picture/picture4.png');">
+                    <a href="https://www.twitter.com" target="_blank" title="Picture 4"></a>
+                </div>
+                <!-- Top Face -->
+                <div class="cube-face face-top" style="background-image: url('Picture/picture5.png');">
+                    <a href="https://www.cisco.com" target="_blank" title="Picture 5"></a>
+                </div>
+                <!-- Bottom Face -->
+                <div class="cube-face face-bottom" style="background-image: url('Picture/picture6.png');">
+                    <a href="https://www.gmail.com" target="_blank" title="Picture 6"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ================================================
+           SPHERICAL CAROUSEL FUNCTIONALITY
+           ================================================ */
+        
+        // Get DOM elements
+        const sphereTrigger = document.getElementById('sphereTrigger');
+        const sphereWrapper = document.getElementById('sphereWrapper');
+        const sphere = document.getElementById('sphere');
+        const carouselContainer = document.getElementById('carouselContainer');
+        const cubeContainer = document.getElementById('cubeContainer');
+        const cube = document.getElementById('cube');
+        const icons = document.querySelectorAll('.social-icon');
+        
+        // Sphere state variables
+        let isActive = false;              // Is sphere currently active?
+        let mouseX = 0;                    // Current mouse X position
+        let mouseY = 0;                    // Current mouse Y position
+        let rotateX = 0;                   // Current X rotation angle
+        let rotateY = 0;                   // Current Y rotation angle
+        let autoCloseTimer = null;         // Timer for auto-closing sphere
+        let lastMouseX = 0;                // Last recorded mouse X
+        let lastMouseY = 0;                // Last recorded mouse Y
+        let velocityX = 0;                 // X-axis rotation velocity
+        let velocityY = 0;                 // Y-axis rotation velocity
+        let inertiaFrame = null;           // Animation frame for inertia
+        let isMouseInside = false;         // Is mouse inside carousel area?
+        
+        // Cube state variables
+        let cubeRotateX = 0;               // Cube X rotation angle
+        let cubeRotateY = 0;               // Cube Y rotation angle
+        let cubeVelocityX = 0;             // Cube X velocity
+        let cubeVelocityY = 0;             // Cube Y velocity
+        let cubeInertiaFrame = null;       // Cube inertia animation frame
+        let isCubeHovered = false;         // Is cube being hovered?
+        let cubePrevMouseX = 0;            // Previous cube mouse X
+        let cubePrevMouseY = 0;            // Previous cube mouse Y
+        
+        // Track mouse movement for velocity calculations
+        let prevMouseX = 0;
+        let prevMouseY = 0;
+        let mouseMoveTimer = null;
+        
+        /**
+         * Position social media icons in a spherical arrangement
+         * Uses spherical coordinate system to distribute icons evenly
+         */
+        function positionIcons() {
+            const radius = 110; // Half of the 220px container
+            const numIcons = icons.length;
+            
+            icons.forEach((icon, index) => {
+                // Calculate spherical coordinates
+                const phi = Math.acos(-1 + (2 * index) / numIcons);
+                const theta = Math.sqrt(numIcons * Math.PI) * phi;
+                
+                // Convert to Cartesian coordinates
+                const x = radius * Math.cos(theta) * Math.sin(phi);
+                const y = radius * Math.sin(theta) * Math.sin(phi);
+                const z = radius * Math.cos(phi);
+                
+                // Store coordinates as data attributes
+                icon.dataset.x = x;
+                icon.dataset.y = y;
+                icon.dataset.z = z;
+                
+                // Apply initial position
+                updateIconPosition(icon);
+            });
+        }
+        
+        /**
+         * Update individual icon position with counter-rotation
+         * Counter-rotation keeps icons facing forward
+         */
+        function updateIconPosition(icon) {
+            const x = parseFloat(icon.dataset.x);
+            const y = parseFloat(icon.dataset.y);
+            const z = parseFloat(icon.dataset.z);
+            
+            // Apply position and counter-rotate to keep icons facing forward
+            icon.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateY(${-rotateY}deg) rotateX(${-rotateX}deg)`;
+        }
+        
+        /**
+         * Apply inertia physics to sphere rotation
+         * Creates smooth deceleration over 5+ seconds
+         */
+        function applyInertia() {
+            if (!isActive) {
+                cancelAnimationFrame(inertiaFrame);
+                return;
+            }
+            
+            // Apply friction (0.98 = very slow deceleration)
+            velocityX *= 0.98;
+            velocityY *= 0.98;
+            
+            // Update rotation based on velocity
+            rotateY += velocityX;
+            rotateX += velocityY;
+            
+            // Apply rotation to sphere
+            sphere.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            
+            // Update all icon positions
+            icons.forEach(icon => {
+                updateIconPosition(icon);
+            });
+            
+            // Continue animation if velocity is significant
+            if (Math.abs(velocityX) > 0.001 || Math.abs(velocityY) > 0.001) {
+                inertiaFrame = requestAnimationFrame(applyInertia);
+            } else {
+                // Transition to slow auto-rotation when inertia stops
+                velocityX = velocityX > 0 ? 0.1 : -0.1;
+                velocityY = 0;
+                startSlowRotation();
+            }
+        }
+        
+        /**
+         * Start continuous slow rotation
+         * Keeps the sphere moving subtly when not interacted with
+         */
+        function startSlowRotation() {
+            if (!isActive) return;
+            
+            function rotate() {
+                if (!isActive) {
+                    cancelAnimationFrame(inertiaFrame);
+                    return;
+                }
+                
+                // Continue rotation in the last direction
+                rotateY += velocityX;
+                rotateX += velocityY;
+                
+                sphere.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                
+                icons.forEach(icon => {
+                    updateIconPosition(icon);
+                });
+                
+                inertiaFrame = requestAnimationFrame(rotate);
+            }
+            
+            inertiaFrame = requestAnimationFrame(rotate);
+        }
+        
+        /**
+         * Activate sphere on hover over carousel container
+         */
+        carouselContainer.addEventListener('mouseenter', () => {
+            if (!isActive) {
+                isActive = true;
+                isMouseInside = true;
+                sphereWrapper.classList.add('active');
+                positionIcons();
+                startAutoCloseTimer();
+            }
+        });
+        
+        /**
+         * Track when mouse enters carousel area
+         */
+        carouselContainer.addEventListener('mouseenter', () => {
+            isMouseInside = true;
+            cancelAnimationFrame(inertiaFrame);
+            prevMouseX = 0;
+            prevMouseY = 0;
+        });
+        
+        /**
+         * Track when mouse leaves carousel area
+         */
+        carouselContainer.addEventListener('mouseleave', () => {
+            isMouseInside = false;
+            if (isActive) {
+                // Start inertia animation when mouse leaves
+                applyInertia();
+            }
+        });
+        
+        /**
+         * Monitor global mouse movement to detect when to close sphere
+         */
+        document.addEventListener('mousemove', (e) => {
+            if (!isActive) return;
+            
+            const rect = carouselContainer.getBoundingClientRect();
+            
+            // Check if mouse is outside the carousel area
+            const isOutside = e.clientX < rect.left || e.clientX > rect.right || 
+                            e.clientY < rect.top || e.clientY > rect.bottom;
+            
+            if (isOutside) {
+                // Let auto-close timer handle closure
+            }
+        });
+        
+        /**
+         * Close sphere and reset all states
+         */
+        function closeSphere() {
+            isActive = false;
+            isMouseInside = false;
+            sphereWrapper.classList.remove('active');
+            cancelAnimationFrame(inertiaFrame);
+            clearTimeout(autoCloseTimer);
+            velocityX = 0;
+            velocityY = 0;
+        }
+        
+        /**
+         * Start auto-close timer (30 seconds)
+         */
+        function startAutoCloseTimer() {
+            clearTimeout(autoCloseTimer);
+            autoCloseTimer = setTimeout(() => {
+                closeSphere();
+            }, 30000);
+        }
+        
+        /**
+         * Handle mouse movement for sphere rotation
+         */
+        carouselContainer.addEventListener('mousemove', (e) => {
+            if (!isActive || !isMouseInside) return;
+            
+            const rect = carouselContainer.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            // Normalize mouse position to -1 to 1 range
+            mouseX = (e.clientX - centerX) / (rect.width / 2);
+            mouseY = (e.clientY - centerY) / (rect.height / 2);
+            
+            // Calculate velocity based on mouse movement
+            if (prevMouseX !== 0 || prevMouseY !== 0) {
+                velocityX = (mouseX - prevMouseX) * 50;
+                velocityY = -(mouseY - prevMouseY) * 50;
+            }
+            
+            prevMouseX = mouseX;
+            prevMouseY = mouseY;
+            
+            // Apply immediate rotation
+            rotateY += velocityX;
+            rotateX += velocityY;
+            
+            sphere.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            
+            // Update all icon positions
+            icons.forEach(icon => {
+                updateIconPosition(icon);
+            });
+            
+            // Clear any existing timers
+            clearTimeout(mouseMoveTimer);
+            cancelAnimationFrame(inertiaFrame);
+            
+            // Detect when mouse stops moving
+            mouseMoveTimer = setTimeout(() => {
+                if (isMouseInside) {
+                    applyInertia();
+                }
+            }, 50);
+            
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        });
+        
+        /**
+         * Prevent sphere from closing when clicking icons
+         */
+        icons.forEach(icon => {
+            icon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                startAutoCloseTimer(); // Reset timer
+            });
+        });
+
+        /* ================================================
+           CUBE MENU FUNCTIONALITY
+           ================================================ */
+        
+        /**
+         * Apply inertia physics to cube rotation
+         */
+        function applyCubeInertia() {
+            // Apply friction for smooth deceleration
+            cubeVelocityX *= 0.98;
+            cubeVelocityY *= 0.98;
+            
+            // Update rotation
+            cubeRotateY += cubeVelocityX;
+            cubeRotateX += cubeVelocityY;
+            
+            cube.style.transform = `rotateX(${cubeRotateX}deg) rotateY(${cubeRotateY}deg)`;
+            
+            // Continue animation if velocity is significant
+            if (Math.abs(cubeVelocityX) > 0.001 || Math.abs(cubeVelocityY) > 0.001) {
+                cubeInertiaFrame = requestAnimationFrame(applyCubeInertia);
+            } else {
+                // Resume auto-rotation when inertia stops
+                cube.style.animation = 'rotateCube 10s infinite linear';
+            }
+        }
+
+        /**
+         * Handle cube hover enter
+         */
+        cubeContainer.addEventListener('mouseenter', () => {
+            isCubeHovered = true;
+            
+            // Close sphere menu if active
+            if (isActive) {
+                closeSphere();
+            }
+            
+            // Stop auto-rotation and preserve current rotation
+            cube.style.animation = 'none';
+            const currentTransform = window.getComputedStyle(cube).transform;
+            cube.style.transform = currentTransform;
+        });
+
+        /**
+         * Handle cube hover exit
+         */
+        cubeContainer.addEventListener('mouseleave', () => {
+            isCubeHovered = false;
+            cubePrevMouseX = 0;
+            cubePrevMouseY = 0;
+            // Start inertia animation
+            applyCubeInertia();
+        });
+
+        /**
+         * Handle mouse movement for cube rotation
+         */
+        cubeContainer.addEventListener('mousemove', (e) => {
+            if (!isCubeHovered) return;
+            
+            const rect = cubeContainer.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            // Normalize mouse position
+            const currentMouseX = (e.clientX - centerX) / (rect.width / 2);
+            const currentMouseY = (e.clientY - centerY) / (rect.height / 2);
+            
+            // Calculate velocity
+            if (cubePrevMouseX !== 0 || cubePrevMouseY !== 0) {
+                cubeVelocityX = (currentMouseX - cubePrevMouseX) * 30;
+                cubeVelocityY = -(currentMouseY - cubePrevMouseY) * 30;
+            }
+            
+            cubePrevMouseX = currentMouseX;
+            cubePrevMouseY = currentMouseY;
+            
+            // Apply immediate rotation
+            cubeRotateY += cubeVelocityX;
+            cubeRotateX += cubeVelocityY;
+            
+            cube.style.transform = `rotateX(${cubeRotateX}deg) rotateY(${cubeRotateY}deg)`;
+            
+            cancelAnimationFrame(cubeInertiaFrame);
+        });
+    </script>
+</body>
+</html>
