@@ -181,7 +181,7 @@ SOFTWARE.
 
 ## 📧 Contact
 
-Your Name - [@yourtwitter](https://x.com/leonelpedroza) - leonelpedroza@gmail.com
+Your Name - [@leonelpedroza](https://x.com/leonelpedroza) - leonelpedroza@gmail.com
 
 Project Link: [https://github.com/leonelpedroza/3d-interactive-menu](https://github.com/leonelpedroza/3d-interactive-menu)
 
